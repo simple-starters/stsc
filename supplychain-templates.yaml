@@ -67,6 +67,8 @@ spec:
           containers:
             - name: workload
               image: $(images.#[name==solo-image-provider].image)
+              env: $(workload.env)
+              resources: $(workload.resources)
               securityContext:
                 runAsUser: 1000
           imagePullSecrets:
