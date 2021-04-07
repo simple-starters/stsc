@@ -19,9 +19,6 @@ spec:
       sources:
         - component: source-provider
           name: solo-source-provider
-      params:
-        - name: java-version
-          path: $(workload.metadata.java-version)
 
     - name: opinion-service-workload-template-provider
       templateRef:
