@@ -28,10 +28,6 @@ kind: BuildTemplate
 metadata:
   name: kpack-battery
 spec:
-  params:
-    - name: java-version
-      default: 8
-
   image:
     path: $(status.latestImage)
 
@@ -49,10 +45,6 @@ spec:
       source:
         blob:
           url: $(sources.0.url)
-      build:
-        env:
-          - name: BP_JAVA_VERSION
-            value: $(params.#[name==java-version].param).*
 
 
 ---
@@ -91,7 +83,7 @@ spec:
     apiVersion: experimental.kontinue.io/v1
     kind: WorkloadConfiguration
     metadata:
-      name: $(workload.name)-cluster-sink
+      name: $(workload.name)
       labels:
         app.tanzu.vmware.com/workload-type: web
     value: $(opinions.0.opinion)
