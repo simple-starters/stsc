@@ -1,0 +1,40 @@
+apiVersion: experimental.kontinue.io/v1
+kind: SupplyChain
+metadata:
+  name: steel-thread
+spec:
+  selector:
+    app.tanzu.vmware.com/workload-type: web
+
+  components:
+    - name: source-provider
+      templateRef:
+        kind: SourceTemplate
+        name: git-repository-battery
+
+    - name: built-image-provider
+      templateRef:
+        kind: BuildTemplate
+        name: kpack-battery
+      sources:
+        - component: source-provider
+          name: solo-source-provider
+      params:
+        - name: java-version
+          path: $(workload.metadata.java-version)
+
+    - name: opinion-service-workload-template-provider
+      templateRef:
+        kind: OpinionTemplate
+        name: opinion-service-battery
+      images:
+        - component: built-image-provider
+          name: solo-image-provider
+
+    - name: cluster-sink
+      templateRef:
+        kind: ConfigTemplate
+        name: cluster-sink-battery
+      opinions:
+        - component: opinion-service-workload-template-provider
+          name: singular-workload-template-provider

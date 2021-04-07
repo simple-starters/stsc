@@ -1,80 +1,87 @@
+---
 apiVersion: experimental.kontinue.io/v1
 kind: SourceTemplate
 metadata:
   name: git-repository-battery
 spec:
   url:
-    path: $(status.artifact.url)$
+    path: $(status.artifact.url)
+
   revision:
-    path: $(status.artifact.revision)$
+    path: $(status.artifact.revision)
+
   template:
     apiVersion: source.toolkit.fluxcd.io/v1beta1
     kind: GitRepository
     metadata:
-      name: $(workload.name)$-source
+      name: $(workload.name)-source
     spec:
-      interval: 5m
-      url: $(workload.git.url)$
-      ref: $(workload.git.ref)$
+      interval: 3m
+      url: $(workload.git.url)
+      ref: $(workload.git.ref)
       gitImplementation: libgit2
 
----
 
+---
 apiVersion: experimental.kontinue.io/v1
 kind: BuildTemplate
 metadata:
   name: kpack-battery
 spec:
   params:
-  - name: java-version
-    default: 8
+    - name: java-version
+      default: 8
+
   image:
-    path: $(status.latestImage)$
+    path: $(status.latestImage)
+
   template:
     apiVersion: kpack.io/v1alpha1
     kind: Image
     metadata:
-      name: $(workload.name)$-image
+      name: $(workload.name)-image
     spec:
-      tag: harbor-repo.vmware.com/tanzu_delivery_pipeline/$(workload.name)$
+      tag: harbor-repo.vmware.com/kontinuedemo/$(workload.name)
       serviceAccount: service-account
       builder:
-        kind: Builder
-        name: builder
+        kind: ClusterBuilder
+        name: java-builder
       source:
         blob:
-          url: $(sources.0.url)$
+          url: $(sources.0.url)
       build:
         env:
-        - name: BP_JAVA_VERSION
-          value: $(params.#(name==java-version).param)$.*
+          - name: BP_JAVA_VERSION
+            value: $(params.#[name==java-version].param).*
+
 
 ---
-
 apiVersion: experimental.kontinue.io/v1
 kind: OpinionTemplate
 metadata:
   name: opinion-service-battery
 spec:
   opinion:
-    path: $(status.template)$
+    path: $(status.template)
 
   template:
     apiVersion: opinions.local/v1alpha1
     kind: WorkloadDecorator
     metadata:
-      name: $(workload.name)$-workload-template
+      name: $(workload.name)-workload-template
     spec:
       template:
         spec:
           containers:
-          - name: workload
-            image: $(images.#(name==solo-image-provider).image)$
-            securityContext:
-              runAsUser: 1000
+            - name: workload
+              image: $(images.#[name==solo-image-provider].image)
+              securityContext:
+                runAsUser: 1000
+          imagePullSecrets:
+            - name: registry-credentials
+
 
 ---
-
 apiVersion: experimental.kontinue.io/v1
 kind: ConfigTemplate
 metadata:
@@ -82,7 +89,9 @@ metadata:
 spec:
   template:
     apiVersion: experimental.kontinue.io/v1
-    kind: ValueStore
+    kind: WorkloadConfiguration
     metadata:
-      name: $(workload.name)$-cluster-sink
-    value: $(opinions.0.opinion)$
+      name: $(workload.name)-cluster-sink
+      labels:
+        app.tanzu.vmware.com/workload-type: web
+    value: $(opinions.0.opinion)

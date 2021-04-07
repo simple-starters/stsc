@@ -1,0 +1,27 @@
+---
+apiVersion: experimental.kontinue.io/v1
+kind: DeliveryTemplate
+metadata:
+  name: kapp-battery
+spec:
+  template:
+    apiVersion: kappctrl.k14s.io/v1alpha1
+    kind: App
+    metadata:
+      name: $(workload.metadata.name)
+    spec:
+      serviceAccountName: service-account
+      fetch:
+        - inline:
+            paths:
+              manifest.yml: |
+                apiVersion: serving.knative.dev/v1
+                kind: Service
+                metadata:
+                  name: $(workload.metadata.name)
+                spec:
+                  template: $(workload.value)
+      template:
+        - ytt: {}
+      deploy:
+        - kapp: {}
