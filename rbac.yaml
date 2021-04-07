@@ -7,3 +7,31 @@ secrets:
   - name: registry-credentials
 imagePullSecrets:
   - name: registry-credentials
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kapp-permissions
+rules:
+  - apiGroups:
+      - service.binding
+      - serving.knative.dev
+    resources: ['*']
+    verbs: ['*']
+  - apiGroups: [""]
+    resources: ['configmaps', 'secrets']
+    verbs: ['*']
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kapp-permissions
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kapp-permissions
+subjects:
+  - kind: ServiceAccount
+    name: service-account
