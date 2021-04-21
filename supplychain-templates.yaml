@@ -64,6 +64,9 @@ spec:
       name: $(workload.name)-workload-template
     spec:
       template:
+        metadata:
+          labels:
+            apps.kubernetes.io/part-of: $(workload.name)
         spec:
           containers:
             - name: workload
